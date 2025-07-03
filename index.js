@@ -44,13 +44,13 @@ async function getUsdToTomanRate() {
   const data = await res.json();
 
   // پیدا کردن اطلاعات دلار
-  const usdInfo = data.Result.find((item) => item.Code === "USD");
+  const usdtInfo = data.currency[0];
 
   // اگر دلار پیدا نشد
-  if (!usdInfo) throw new Error("نرخ دلار پیدا نشد");
+  if (!usdtInfo) throw new Error("نرخ دلار پیدا نشد");
 
   // قیمت خرید رو برمیگردونیم (به تومان)
-  return parseFloat(usdInfo.Buy);
+  return parseFloat(usdtInfo.Buy);
 }
 
 async function sendGameCard(ctx, title) {
