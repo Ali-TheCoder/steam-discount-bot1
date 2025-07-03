@@ -39,11 +39,18 @@ bot.hears("🎮 بازی‌ها", (ctx) => {
 
 async function getUsdToTomanRate() {
   const res = await fetch(
-    "https://api.exchangerate.host/latest?base=USD&symbols=IRR"
+    "https://brsapi.ir/Api/Market/Gold_Currency.php?key=Freegr0FhzW9uLZ4DR0j9dN8MxlhGmE6"
   );
   const data = await res.json();
-  const rate = data.rates.IRR;
-  return rate; // هر دلار چند تومنه
+
+  // پیدا کردن اطلاعات دلار
+  const usdInfo = data.Result.find((item) => item.Code === "USD");
+
+  // اگر دلار پیدا نشد
+  if (!usdInfo) throw new Error("نرخ دلار پیدا نشد");
+
+  // قیمت خرید رو برمیگردونیم (به تومان)
+  return parseFloat(usdInfo.Buy);
 }
 
 async function sendGameCard(ctx, title) {
@@ -62,6 +69,7 @@ async function sendGameCard(ctx, title) {
     const discountPercent = Math.round((1 - salePrice / normalPrice) * 100);
 
     const usdToToman = await getUsdToTomanRate();
+
     const salePriceToman = Math.round(salePrice * usdToToman).toLocaleString(
       "fa-IR"
     );
