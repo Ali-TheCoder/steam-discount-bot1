@@ -1,7 +1,7 @@
 import { Telegraf, Markup } from "telegraf";
 import fetch from "node-fetch";
 
-const bot = new Telegraf(`7252470204:AAHhdySpYucLyeGcQrCqAi13Ni2HafPqQIs`);
+const bot = new Telegraf("7252470204:AAHhdySpYucLyeGcQrCqAi13Ni2HafPqQIs");
 
 async function getGameInfo(title) {
   const url = `https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(
@@ -9,7 +9,14 @@ async function getGameInfo(title) {
   )}&limit=1`;
   const res = await fetch(url);
   const data = await res.json();
-  return data[0];
+  return data[0]; // اولین نتیجه
+}
+
+async function getDealInfo(gameID) {
+  const url = `https://www.cheapshark.com/api/1.0/games?id=${gameID}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.deals[0]; // بهترین Deal
 }
 
 bot.start((ctx) => {
@@ -30,31 +37,41 @@ bot.hears("🎮 بازی‌ها", (ctx) => {
   );
 });
 
-bot.action("mw2", async (ctx) => {
-  await ctx.answerCbQuery(); // بستن لودینگ تلگرام
-  const game = await getGameInfo("modern warfare 2");
-  if (game) {
-    ctx.reply(
-      `🎮 نام: ${game.external}\n💲 قیمت ارزان‌ترین: $${game.cheapest}\n🔗 [لینک خرید](https://www.cheapshark.com/redirect?dealID=${game.cheapestDealID})`,
-      { parse_mode: "Markdown" }
-    );
-  } else {
-    ctx.reply("بازی پیدا نشد.");
-  }
-});
-
-bot.action("mw3", async (ctx) => {
+async function sendGameCard(ctx, title) {
   await ctx.answerCbQuery();
-  const game = await getGameInfo("modern warfare 3");
+  const game = await getGameInfo(title);
+
   if (game) {
-    ctx.reply(
-      `🎮 نام: ${game.external}\n💲 قیمت ارزان‌ترین: $${game.cheapest}\n🔗 [لینک خرید](https://www.cheapshark.com/redirect?dealID=${game.cheapestDealID})`,
-      { parse_mode: "Markdown" }
-    );
+    const deal = await getDealInfo(game.gameID);
+    if (!deal) {
+      ctx.reply("هیچ دیلی برای این بازی موجود نیست.");
+      return;
+    }
+
+    const normalPrice = parseFloat(deal.retailPrice);
+    const salePrice = parseFloat(deal.price);
+    const discountPercent = Math.round((1 - salePrice / normalPrice) * 100);
+
+    let discountText = "";
+    if (discountPercent > 0) {
+      discountText = `💸 تخفیف خورده: ${discountPercent}%\n💲 قیمت با تخفیف: $${salePrice}`;
+    } else {
+      discountText = "❌ تخفیف نخورده.";
+    }
+
+    ctx.replyWithPhoto(game.thumb, {
+      caption: `🎮 *${game.external}*
+${discountText}
+🔗 [لینک خرید](https://www.cheapshark.com/redirect?dealID=${deal.dealID})`,
+      parse_mode: "Markdown",
+    });
   } else {
     ctx.reply("بازی پیدا نشد.");
   }
-});
+}
+
+bot.action("mw2", (ctx) => sendGameCard(ctx, "modern warfare 2"));
+bot.action("mw3", (ctx) => sendGameCard(ctx, "modern warfare 3"));
 
 bot.action("back", async (ctx) => {
   await ctx.answerCbQuery();
