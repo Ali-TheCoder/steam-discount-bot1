@@ -37,6 +37,15 @@ bot.hears("🎮 بازی‌ها", (ctx) => {
   );
 });
 
+async function getUsdToTomanRate() {
+  const res = await fetch(
+    "https://api.exchangerate.host/latest?base=USD&symbols=IRR"
+  );
+  const data = await res.json();
+  const rate = data.rates.IRR;
+  return rate; // هر دلار چند تومنه
+}
+
 async function sendGameCard(ctx, title) {
   await ctx.answerCbQuery();
   const game = await getGameInfo(title);
@@ -52,11 +61,19 @@ async function sendGameCard(ctx, title) {
     const salePrice = parseFloat(deal.price);
     const discountPercent = Math.round((1 - salePrice / normalPrice) * 100);
 
+    const usdToToman = await getUsdToTomanRate();
+    const salePriceToman = Math.round(salePrice * usdToToman).toLocaleString(
+      "fa-IR"
+    );
+    const normalPriceToman = Math.round(
+      normalPrice * usdToToman
+    ).toLocaleString("fa-IR");
+
     let discountText = "";
     if (discountPercent > 0) {
-      discountText = `💸 تخفیف خورده: ${discountPercent}%\n💲 قیمت با تخفیف: $${salePrice}`;
+      discountText = `💸 تخفیف خورده: ${discountPercent}%\n💲 قیمت با تخفیف: $${salePrice} (~ ${salePriceToman} تومان)\n💲 قیمت اصلی: $${normalPrice} (~ ${normalPriceToman} تومان)`;
     } else {
-      discountText = "❌ تخفیف نخورده.";
+      discountText = `❌ تخفیف نخورده.\n💲 قیمت: $${salePrice} (~ ${salePriceToman} تومان)`;
     }
 
     ctx.replyWithPhoto(game.thumb, {
