@@ -112,6 +112,14 @@ bot.action("back", async (ctx) => {
     Markup.keyboard([["🎮 بازی‌ها"]]).resize()
   );
 });
+bot.on("text", async (ctx) => {
+  const title = ctx.message.text.trim();
+
+  // فیلتر پیام‌هایی که خودمون ارسال کردیم مثل "🎮 بازی‌ها"
+  if (["🎮 بازی‌ها"].includes(title)) return;
+
+  await sendGameCard(ctx, title);
+});
 
 bot.launch();
 console.log("🤖 Bot is running...");
