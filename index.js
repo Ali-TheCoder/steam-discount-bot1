@@ -113,15 +113,22 @@ bot.action("back", async (ctx) => {
   );
 });
 bot.on("message", async (ctx) => {
-  // فقط پیام‌های متنی
-  if (!ctx.message.text) return;
+  // فقط وقتی پیام، متنی باشه
+  if (ctx.message && ctx.message.text) {
+    const title = ctx.message.text.trim();
 
-  const title = ctx.message.text.trim();
+    // فیلتر کردن پیام‌هایی مثل دکمه‌های کیبورد
+    if (["🎮 بازی‌ها"].includes(title)) return;
 
-  // فیلتر دکمه‌ها
-  if (["🎮 بازی‌ها"].includes(title)) return;
-
-  await sendGameCard(ctx, title);
+    try {
+      await sendGameCard(ctx, title);
+    } catch (err) {
+      console.error("❌ خطا هنگام ارسال بازی:", err);
+      ctx.reply("یه مشکلی پیش اومد. دوباره تلاش کن.");
+    }
+  } else {
+    console.log("🚫 پیام غیر متنی بود، نادیده گرفته شد.");
+  }
 });
 
 bot.launch();
