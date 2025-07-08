@@ -112,10 +112,13 @@ bot.action("back", async (ctx) => {
     Markup.keyboard([["🎮 بازی‌ها"]]).resize()
   );
 });
-bot.on("text", async (ctx) => {
+bot.on("message", async (ctx) => {
+  // فقط پیام‌های متنی
+  if (!ctx.message.text) return;
+
   const title = ctx.message.text.trim();
 
-  // فیلتر پیام‌هایی که خودمون ارسال کردیم مثل "🎮 بازی‌ها"
+  // فیلتر دکمه‌ها
   if (["🎮 بازی‌ها"].includes(title)) return;
 
   await sendGameCard(ctx, title);
