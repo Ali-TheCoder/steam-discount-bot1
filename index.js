@@ -83,9 +83,16 @@ async function sendGameCard(ctx, title) {
     } else {
       discountText = `❌ تخفیف نخورده.\n💲 قیمت: $${salePrice} (~ ${salePriceToman} تومان)`;
     }
+    const now = new Date();
+    const date = now.toLocaleDateString("fa-IR");
+    const time = now.toLocaleTimeString("fa-IR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     ctx.replyWithPhoto(game.thumb, {
       caption: `🎮 *${game.external}*
+      📅 تاریخ: ${date} ⏰ ساعت: ${time}
 ${discountText}
 🔗 [لینک خرید](https://www.cheapshark.com/redirect?dealID=${deal.dealID})`,
       parse_mode: "Markdown",
